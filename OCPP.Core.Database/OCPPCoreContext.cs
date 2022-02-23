@@ -54,6 +54,8 @@ namespace OCPP.Core.Database
             {
                 string sqlConnString = _configuration.GetConnectionString("SqlServer");
                 string liteConnString = _configuration.GetConnectionString("SQLite");
+                string postgresConnString = _configuration.GetConnectionString("Postgres");
+
                 if (!string.IsNullOrWhiteSpace(sqlConnString))
                 {
                     optionsBuilder.UseSqlServer(sqlConnString);
@@ -62,11 +64,20 @@ namespace OCPP.Core.Database
                 {
                     optionsBuilder.UseSqlite(liteConnString);
                 }
+                else if (!string.IsNullOrWhiteSpace(postgresConnString))
+                {
+                    optionsBuilder.UseNpgsql(postgresConnString);
+                }
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            if (!string.IsNullOrWhiteSpace(_configuration.GetConnectionString("Postgres")))
+            {
+                modelBuilder.HasDefaultSchema("public");
+            }
+
             modelBuilder.Entity<ChargePoint>(entity =>
             {
                 entity.ToTable("ChargePoint");

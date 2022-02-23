@@ -96,7 +96,7 @@ namespace OCPP.Core.Management
             app.UseRouting();
             app.UseAuthorization();
 
-            var supportedCultures = new[] { "en", "de" };
+            var supportedCultures = new[] { "pt", "en", "de" };
             var localizationOptions = new RequestLocalizationOptions().SetDefaultCulture(supportedCultures[0])
                 .AddSupportedCultures(supportedCultures)
                 .AddSupportedUICultures(supportedCultures);
