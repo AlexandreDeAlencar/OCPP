@@ -81,6 +81,7 @@ namespace OCPP.Core.Server
 
             // Accept WebSocket
             app.UseWebSockets(webSocketOptions);
+           
 
             // Integrate custom OCPP middleware for message processing
             app.UseOCPPMiddleware();

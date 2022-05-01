@@ -33,6 +33,7 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using OCPP.Core.Database;
 using OCPP.Core.Management.Models;
+using OCPP.Core.Management.Extensions;
 
 namespace OCPP.Core.Management.Controllers
 {
@@ -284,6 +285,11 @@ namespace OCPP.Core.Management.Controllers
                 Logger.LogError(exp, "Index: Error loading charge points from database");
                 TempData["ErrMessage"] = exp.Message;
                 return RedirectToAction("Error", new { Id = "" });
+            }
+
+            if (this.Request.IsAjaxRequest())
+            {
+                return PartialView(overviewModel); //you can pass in some data into view as PartialView(myModel)
             }
 
             return View(overviewModel);

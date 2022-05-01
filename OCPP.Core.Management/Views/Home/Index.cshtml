@@ -17,7 +17,7 @@
             if (cpvm.StartTime != null && cpvm.StopTime == null)
             {
                 TimeSpan timeSpan = DateTime.UtcNow.Subtract(cpvm.StartTime.Value);
-                chargeTime = string.Format(Localizer["ChargeTime"].Value, (timeSpan.Days*24 + timeSpan.Hours), timeSpan.Minutes);
+                chargeTime = string.Format(Localizer["ChargeTime"].Value, (timeSpan.Days * 24 + timeSpan.Hours), timeSpan.Minutes);
             }
 
             string cpIcon = "fa-plug";
@@ -80,9 +80,11 @@
             </div>
         }
     </div>
+    <script type="text/javascript" src="~/lib/jquery/jquery.js"></script>
+    <script type="text/javascript" src="~/js/HomeWebSockets.js"></script>
     @if (!string.IsNullOrEmpty(ViewBag.ErrorMsg))
     {
-        <br/>
+        <br />
         <div class="alert alert-danger" role="alert">
             @ViewBag.ErrorMsg
         </div>
