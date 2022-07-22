@@ -381,7 +381,7 @@ namespace OCPP.Core.Server
                             _logger.LogError("OCPPMiddleware UnlockConnector => Missing chargepoint ID");
                             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                         }
-                    }
+                    } 
                     else
                     {
                         // Unknown action/function

@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:8082",
+      "applicationUrl": "http://localhost:8084",
       "sslPort": 0
     }
   },
@@ -18,7 +18,7 @@
     "OCPP.Core.Management": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:8082",
+      "applicationUrl": "http://localhost:8084",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

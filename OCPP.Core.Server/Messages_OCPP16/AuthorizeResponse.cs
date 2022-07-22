@@ -32,8 +32,6 @@ namespace OCPP.Core.Server.Messages_OCPP16
         [Newtonsoft.Json.JsonProperty("idTagInfo", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required]
         public IdTagInfo IdTagInfo { get; set; } = new IdTagInfo();
-
-
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v9.0.0.0)")]

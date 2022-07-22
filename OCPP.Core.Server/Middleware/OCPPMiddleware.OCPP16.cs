@@ -77,6 +77,9 @@ namespace OCPP.Core.Server
 
                                 // Send OCPP message with optional logging/dump
                                 await SendOcpp16Message(msgOut, logger, chargePointStatus.WebSocket);
+
+                                // Excute an operation after send ocpp message regarding msgOut
+                                await ExcuteAfterSenddOcpp16Message(chargePointStatus, context, msgIn);
                             }
                             else if (msgIn.MessageType == "3" || msgIn.MessageType == "4")
                             {
@@ -181,6 +184,85 @@ namespace OCPP.Core.Server
             apiCallerContext.Response.StatusCode = 200;
             apiCallerContext.Response.ContentType = "application/json";
             await apiCallerContext.Response.WriteAsync(apiResult);
+        }
+
+        /// <summary>
+        /// Sends a SetChargingProfile-Request to the chargepoint
+        /// </summary>
+        private async Task SetChargePointMaxProfile16(ChargePointStatus chargePointStatus, HttpContext apiCallerContext)
+        {
+            ILogger logger = _logFactory.CreateLogger("OCPPMiddleware.OCPP16");
+            ControllerOCPP16 controller16 = new ControllerOCPP16(_configuration, _logFactory, chargePointStatus);
+            decimal availablePower = _configuration.GetValue<decimal>("AvailablePower");
+
+            int onlineConnectorStatusesNumber = _chargePointStatusDict
+                .Where(s => s.Value.OnlineConnectors.Count() > 0)
+                .Count();
+
+            if (onlineConnectorStatusesNumber == 0) return;
+
+            decimal limit = availablePower / onlineConnectorStatusesNumber;
+
+            ChargingSchedulePeriod chargingSchedulePeriod = new ChargingSchedulePeriod()
+            {
+                Limit = limit,
+                StartPeriod = 0
+            };
+
+            ChargingSchedule chargingSchedule = new ChargingSchedule()
+            {
+                ChargingRateUnit = ChargingRateUnitType.W,
+                ChargingSchedulePeriod = new System.Collections.ObjectModel.Collection<ChargingSchedulePeriod>() { chargingSchedulePeriod }
+            };
+
+            Messages_OCPP16.SetChargingProfileRequest setChargingProfileRequest = new Messages_OCPP16.SetChargingProfileRequest();
+            setChargingProfileRequest.ConnectorId = 0;
+            ChargingProfile chargingProfile = new ChargingProfile()
+            {
+                ChargingProfileId = 158798,
+                ChargingProfilePurpose = ChargingProfilePurposeType.ChargePointMaxProfile,
+                ChargingProfileKind = ChargingProfileKindType.Recurring,
+                StackLevel = 0,
+                ChargingSchedule = chargingSchedule
+
+            };
+            setChargingProfileRequest.CsChargingProfiles = chargingProfile;
+
+            string jsonSetChargePointMaxProfileRequest = JsonConvert.SerializeObject(setChargingProfileRequest);
+
+            OCPPMessage msgOut = new OCPPMessage();
+            msgOut.MessageType = "2";
+            msgOut.Action = "SetChargingProfile";
+            msgOut.UniqueId = Guid.NewGuid().ToString("N");
+            msgOut.JsonPayload = jsonSetChargePointMaxProfileRequest;
+            msgOut.TaskCompletionSource = new TaskCompletionSource<string>();
+
+            // store HttpContext with MsgId for later answer processing (=> send anwer to API caller)
+            _requestQueue.Add(msgOut.UniqueId, msgOut);
+
+            // Send OCPP message with optional logging/dump
+            await SendOcpp16Message(msgOut, logger, chargePointStatus.WebSocket);
+
+            // Wait for asynchronous chargepoint response and processing
+            string apiResult = await msgOut.TaskCompletionSource.Task;
+
+            // 
+            apiCallerContext.Response.StatusCode = 200;
+            apiCallerContext.Response.ContentType = "application/json";
+            await apiCallerContext.Response.WriteAsync(apiResult);
+        }
+
+        public async Task ExcuteAfterSenddOcpp16Message(ChargePointStatus chargePointStatus, HttpContext apiCallerContext, OCPPMessage msg)
+        {
+            switch (msg.Action)
+            {
+                case "StartTransaction":
+                case "StopTransaction":
+                    await SetChargePointMaxProfile16(chargePointStatus , apiCallerContext);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private async Task SendOcpp16Message(OCPPMessage msg, ILogger logger, WebSocket webSocket)
