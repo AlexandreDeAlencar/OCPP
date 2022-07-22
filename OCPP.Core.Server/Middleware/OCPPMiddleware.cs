@@ -81,7 +81,7 @@ namespace OCPP.Core.Server
                             _logger.LogInformation("OCPPMiddleware => SUCCESS: Found chargepoint with identifier={0}", chargePoint.ChargePointId);
 
                             // Check optional chargepoint authentication
-                            if (!string.IsNullOrWhiteSpace(chargePoint.Username))
+                           if (!string.IsNullOrWhiteSpace(chargePoint.Username))
                             {
                                 // Chargepoint MUST send basic authentication header
 

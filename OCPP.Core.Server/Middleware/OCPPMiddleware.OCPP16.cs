@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -79,7 +80,7 @@ namespace OCPP.Core.Server
                                 await SendOcpp16Message(msgOut, logger, chargePointStatus.WebSocket);
 
                                 // Excute an operation after send ocpp message regarding msgOut
-                                await ExcuteAfterSenddOcpp16Message(chargePointStatus, context, msgIn);
+                                ExecuteAfterAfterOcpp16Message(chargePointStatus, context, msgOut);
                             }
                             else if (msgIn.MessageType == "3" || msgIn.MessageType == "4")
                             {
@@ -88,6 +89,9 @@ namespace OCPP.Core.Server
                                 {
                                     controller16.ProcessAnswer(msgIn, _requestQueue[msgIn.UniqueId]);
                                     _requestQueue.Remove(msgIn.UniqueId);
+
+                                    // Excute an operation after process answer for Charge Point
+                                    ExecuteAfterProcessAnswer(chargePointStatus, context, msgIn);
                                 }
                                 else
                                 {
@@ -252,16 +256,41 @@ namespace OCPP.Core.Server
             await apiCallerContext.Response.WriteAsync(apiResult);
         }
 
-        public async Task ExcuteAfterSenddOcpp16Message(ChargePointStatus chargePointStatus, HttpContext apiCallerContext, OCPPMessage msg)
+        public void ExecuteAfterProcessAnswer(ChargePointStatus chargePointStatus, HttpContext apiCallerContext, OCPPMessage msg)
         {
-            switch (msg.Action)
+            try
             {
-                case "StartTransaction":
-                case "StopTransaction":
-                    await SetChargePointMaxProfile16(chargePointStatus , apiCallerContext);
-                    break;
-                default:
-                    break;
+                switch (msg.Action)
+                {
+                    default:
+                        break;
+                }
+            }
+            catch(Exception exp)
+            {
+                _logger.LogError(exp, "OCPPMiddleware UnlockConnector => Error: {0}", exp.Message);
+                apiCallerContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
+        }
+
+        public async Task ExecuteAfterAfterOcpp16Message(ChargePointStatus chargePointStatus, HttpContext apiCallerContext, OCPPMessage msg)
+        {
+            try
+            {
+                switch (msg.Action)
+                {
+                    case "StartTransaction":
+                    case "StopTransaction":
+                        await SetChargePointMaxProfile16(chargePointStatus , apiCallerContext);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch(Exception exp)
+            {
+                _logger.LogError(exp, "OCPPMiddleware UnlockConnector => Error: {0}", exp.Message);
+                apiCallerContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
         }
 
